@@ -73,31 +73,25 @@ public class TestUI : MonoBehaviour
             Debug.LogError($"Failed to set ExternalUserId: {e.Message}");
         }
 
-        // METHOD 3: UserReporting.Metadata.SetCustomMetadata (if available)
-        Debug.Log("=== Setting up Custom Metadata ===");
+        // METHOD 3: Additional CrashReportHandler metadata with Custom prefix
+        // Note: UserReporting.Metadata API is not available in Unity 6
+        // Using CrashReportHandler for additional custom metadata instead
+        Debug.Log("=== Setting up Additional Custom Metadata via CrashReportHandler ===");
         try
         {
-            var customMetadata = new Dictionary<string, string>
-            {
-                { "Custom_user_id", "custom_user_67890" },
-                { "Custom_session_type", "Diagnostic_Test_Session" },
-                { "Custom_test_scenario", "Metadata_Validation" },
-                { "Custom_tester", "Mauricio_Ramirez_Team" },
-                { "Custom_build_type", "Debug_Build" },
-                { "Custom_feature_flag", "DiagnosticsDashboard_v2" },
-                { "Custom_graphics_api", SystemInfo.graphicsDeviceType.ToString() },
-                { "Custom_memory_size", SystemInfo.systemMemorySize + "MB" }
-            };
-
-            foreach (var kvp in customMetadata)
-            {
-                UserReporting.Metadata.Set(kvp.Key, kvp.Value);
-            }
-            Debug.Log("Custom metadata set successfully");
+            CrashReportHandler.SetUserMetadata("Custom_user_id", "custom_user_67890");
+            CrashReportHandler.SetUserMetadata("Custom_session_type", "Diagnostic_Test_Session");
+            CrashReportHandler.SetUserMetadata("Custom_test_scenario", "Metadata_Validation");
+            CrashReportHandler.SetUserMetadata("Custom_tester", "Mauricio_Ramirez_Team");
+            CrashReportHandler.SetUserMetadata("Custom_build_type", "Debug_Build");
+            CrashReportHandler.SetUserMetadata("Custom_feature_flag", "DiagnosticsDashboard_v2");
+            CrashReportHandler.SetUserMetadata("Custom_graphics_api", SystemInfo.graphicsDeviceType.ToString());
+            CrashReportHandler.SetUserMetadata("Custom_memory_size", SystemInfo.systemMemorySize + "MB");
+            Debug.Log("Additional custom metadata set successfully via CrashReportHandler");
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to set custom metadata: {e.Message}");
+            Debug.LogError($"Failed to set additional custom metadata: {e.Message}");
         }
 
         Debug.Log("=== All metadata methods completed ===");
