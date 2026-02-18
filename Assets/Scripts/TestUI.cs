@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Diagnostics;
 using UnityEngine.UI;
 using UnityEngine.CrashReportHandler;
+using Unity.Services.Core;
 
 public class TestUI : MonoBehaviour
 {
@@ -17,9 +18,21 @@ public class TestUI : MonoBehaviour
     [Header("Test References")]
     public GameObject leaveEmpty;
 
-    private void Start()
+    private async void Start()
     {
-        // Set up CrashReportHandler metadata at startup
+        // UnityServices.InitializeAsync() is required to initialize the
+        // Cloud Diagnostics pipeline before setting any metadata
+        try
+        {
+            await UnityServices.InitializeAsync();
+            Debug.Log("Unity Services initialized successfully");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to initialize Unity Services: {e.Message}");
+        }
+
+        // Set up metadata AFTER Unity Services is initialized
         SetupMetadata();
 
         // Assigning button listeners
@@ -61,30 +74,35 @@ public class TestUI : MonoBehaviour
 
     public void QuitApp() => Application.Quit();
 
-    public void ThrowException() 
+    public void ThrowException()
     {
-        Debug.LogException(new Exception("Test Exception"));
+        SetupMetadata();
+        throw new Exception("Test Exception");
     }
 
-    public void ForceCrash() 
+    public void ForceCrash()
     {
+        SetupMetadata();
         Utils.ForceCrash(ForcedCrashCategory.FatalError);
     }
 
-    public void ForceCrashAccessViolation() 
+    public void ForceCrashAccessViolation()
     {
+        SetupMetadata();
         Utils.ForceCrash(ForcedCrashCategory.AccessViolation);
     }
 
     public void OORError()
     {
+        SetupMetadata();
         int[] testArray = new int[1];
         int goingToFail = testArray[2]; // Triggers IndexOutOfRangeException
     }
 
     public void NullReferenceTest()
     {
+        SetupMetadata();
         // Ensure 'leaveEmpty' is not assigned in the inspector for this test
-        string willFail = leaveEmpty.name; 
+        string willFail = leaveEmpty.name;
     }
 }
