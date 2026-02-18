@@ -45,7 +45,10 @@ public class TestUI : MonoBehaviour
             CrashReportHandler.SetUserMetadata("CRH_unity_version", Application.unityVersion);
             CrashReportHandler.SetUserMetadata("CRH_device_model", SystemInfo.deviceModel);
             CrashReportHandler.SetUserMetadata("CRH_os", SystemInfo.operatingSystem);
-            
+
+            // CRITICAL: Enable exception capture to ensure metadata is sent
+            CrashReportHandler.enableCaptureExceptions = true;
+
             Debug.Log("CrashReportHandler metadata set successfully");
         }
         catch (Exception e)
