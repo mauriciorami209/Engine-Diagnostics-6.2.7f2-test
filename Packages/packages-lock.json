@@ -141,14 +141,13 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.services.cloud-diagnostics": {
-      "version": "1.0.12",
+      "version": "file:com.unity.services.cloud-diagnostics",
       "depth": 0,
-      "source": "registry",
+      "source": "embedded",
       "dependencies": {
         "com.unity.services.core": "1.12.5",
         "com.unity.modules.unityanalytics": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
+      }
     },
     "com.unity.services.core": {
       "version": "1.16.0",
