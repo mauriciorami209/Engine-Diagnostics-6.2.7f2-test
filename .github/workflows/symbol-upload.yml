@@ -1,0 +1,45 @@
+name: Build and Upload Symbols
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allows you to click "Run Workflow" manually in GitHub Actions
+
+env:
+  PLATFORM: "android"
+  UNITY_EDITOR_PATH: "/Applications/Unity/Hub/Editor/6000.2.7f2"
+  BUILD_NAME: "MyGame"
+
+jobs:
+  upload-symbols:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      # IMPORTANT: Insert your Unity Build step here. 
+      # The usymtool.sh script REQUIRES the Library/Bee folder to exist.
+
+      - name: Upload debug symbols
+        env:
+          UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
+          UNITY_SA_AUTH: ${{ secrets.UNITY_SA_AUTH_HEADER }}
+          UNITY_PROJECT_PATH: ${{ github.workspace }}
+          BUILD_OUTPUT_PATH: ${{ github.workspace }}/Build
+        run: |
+          # Use sed to inject GitHub secrets into the script template
+          sed -i '' "s|PLATFORM=\"macos\"|PLATFORM=\"${PLATFORM}\"|" ./usymtool.sh
+          sed -i '' "s|UNITY_PROJECT_ID=\"<your-unity-project-id>\"|${UNITY_PROJECT_ID}|" ./usymtool.sh
+          sed -i '' "s|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"<your-service-account-auth-header>\"|${UNITY_SA_AUTH}|" ./usymtool.sh
+          sed -i '' "s|UNITY_EDITOR_PATH=\"/Applications/Unity/Hub/Editor/6000.3.10f1\"|${UNITY_EDITOR_PATH}|" ./usymtool.sh
+          sed -i '' "s|UNITY_PROJECT_PATH=\"<your-unity-project-path>\"|${UNITY_PROJECT_PATH}|" ./usymtool.sh
+          
+          # Apply the Mandatory fixes we discovered for Unity 6
+          export USYMTOOL_PATH_OVERRIDE="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/usymtool"
+          export LZMA_PATH="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/lzma"
+          export IL2CPP_FILE_ROOT_OVERRIDE="."
+          
+          chmod +x ./usymtool.sh
+          ./usymtool.sh
