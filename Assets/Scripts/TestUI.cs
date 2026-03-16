@@ -20,21 +20,27 @@ public class TestUI : MonoBehaviour
 
     private async void Start()
     {
-        Debug.Log("Force a new build and new session" + System.Guid.NewGuid());
-        // UnityServices.InitializeAsync() is required to initialize the
-        // Cloud Diagnostics pipeline before setting any metadata
+        Debug.Log("Force a new build and new session: " + System.Guid.NewGuid());
+        
+        // 1. Disable buttons to prevent clicking before initialization finishes
+        SetButtonsInteractable(false);
+
         try
         {
+            // 2. Wait for Cloud Diagnostics pipeline to initialize completely
             await UnityServices.InitializeAsync();
             Debug.Log("Unity Services initialized successfully");
+            
+            // 3. Set up metadata AFTER Unity Services is initialized
+            SetupMetadata();
+            
+            // 4. Enable buttons safely now that initialization is done
+            SetButtonsInteractable(true);
         }
         catch (Exception e)
         {
             Debug.LogError($"Failed to initialize Unity Services: {e.Message}");
         }
-
-        // Set up metadata AFTER Unity Services is initialized
-        SetupMetadata();
 
         // Assigning button listeners
         quitButton.onClick.AddListener(QuitApp);
@@ -45,12 +51,21 @@ public class TestUI : MonoBehaviour
         nullReferenceErrorButton.onClick.AddListener(NullReferenceTest);
     }
 
+    private void SetButtonsInteractable(bool state)
+    {
+        if (quitButton) quitButton.interactable = state;
+        if (throwExceptionButton) throwExceptionButton.interactable = state;
+        if (forceCrashButton) forceCrashButton.interactable = state;
+        if (ooRErrorButton) ooRErrorButton.interactable = state;
+        if (forceCrashAccessViolationButton) forceCrashAccessViolationButton.interactable = state;
+        if (nullReferenceErrorButton) nullReferenceErrorButton.interactable = state;
+    }
+
     private void SetupMetadata()
     {
         Debug.Log("=== Setting up CrashReportHandler metadata ===");
         try
         {
-            // Using Method 1: CrashReportHandler.SetUserMetadata
             CrashReportHandler.SetUserMetadata("CRH_user_id", "user_12345");
             CrashReportHandler.SetUserMetadata("CRH_session_id", Guid.NewGuid().ToString());
             CrashReportHandler.SetUserMetadata("CRH_test_environment", "QA_Testing");
@@ -77,33 +92,49 @@ public class TestUI : MonoBehaviour
 
     public void ThrowException()
     {
-        SetupMetadata();
-        throw new Exception("Test Exception");
+        try 
+        {
+            throw new Exception("Test Exception for Cloud Diagnostics");
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
     public void ForceCrash()
     {
-        SetupMetadata();
         Utils.ForceCrash(ForcedCrashCategory.FatalError);
     }
 
     public void ForceCrashAccessViolation()
     {
-        SetupMetadata();
         Utils.ForceCrash(ForcedCrashCategory.AccessViolation);
     }
 
     public void OORError()
     {
-        SetupMetadata();
-        int[] testArray = new int[1];
-        int goingToFail = testArray[2]; // Triggers IndexOutOfRangeException
+        try
+        {
+            int[] testArray = new int[1];
+            int goingToFail = testArray[2]; // Triggers IndexOutOfRangeException
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
     public void NullReferenceTest()
     {
-        SetupMetadata();
-        // Ensure 'leaveEmpty' is not assigned in the inspector for this test
-        string willFail = leaveEmpty.name;
+        try
+        {
+            // Ensure 'leaveEmpty' is not assigned in the inspector for this test
+            string willFail = leaveEmpty.name;
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 }
