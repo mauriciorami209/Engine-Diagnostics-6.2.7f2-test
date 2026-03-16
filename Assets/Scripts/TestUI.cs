@@ -20,6 +20,7 @@ public class TestUI : MonoBehaviour
 
     private async void Start()
     {
+        Debug.Log("Force a new build and new session" + System.Guid.NewGuid());
         // UnityServices.InitializeAsync() is required to initialize the
         // Cloud Diagnostics pipeline before setting any metadata
         try
