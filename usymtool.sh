@@ -13,7 +13,7 @@ set -euo pipefail
 # █████████████████████████████████████████████████████████████████████████████
 
 # Platform to upload symbols for (ios, macos, android)
-PLATFORM="android"
+PLATFORM="macos"
 
 # Set to true if your build uses the IL2CPP scripting backend.
 # Enables C# line numbers in exception reports.
@@ -21,19 +21,16 @@ USE_IL2CPP=true
 
 # Unity project ID (from Unity Dashboard)
 # Example: "d7219bd9-ce9e-4a0e-90d5-caf5ce46e658"
-UNITY_PROJECT_ID="21686f56-42e3-4a04-a770-6970a77a9e75"
+UNITY_PROJECT_ID="<your-unity-project-id>"
 
 # Service account auth header (from Unity Dashboard > Service Accounts)
 # Example: "Basic dXNlcm5hbWU6cGFzc3dvcmQ="
-UNITY_SERVICE_ACCOUNT_AUTH_HEADER="Basic NDM1Mjg3M2QtOTIwNy00YzQ2LWJlOTgtMTUwMzVhNDc2YjE0OkpzT0pZc3pPN3d3akcwYmppZ1h1bHhfcml1VnNZWjJf"
-
+UNITY_SERVICE_ACCOUNT_AUTH_HEADER="<your-service-account-auth-header>"
 # Path to the Unity Editor installation
-UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.2.7f2"
-
+UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.3.10f1"
 # Path to the Unity project
 # Example: "/Users/yourname/UnityProjects/MyGame"
-UNITY_PROJECT_PATH="/Users/mauricioramirez/UNITY PROJECTS/Engine-Diagnostics-6.2.7f2-test"
-
+UNITY_PROJECT_PATH="<your-unity-project-path>"
 # Path to the build output directory
 # For iOS, this is the Xcode project export path.
 # For macOS/Windows, this is the folder containing the built app.

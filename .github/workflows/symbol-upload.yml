@@ -3,7 +3,7 @@ name: Build and Upload Symbols
 on:
   push:
     branches: [main]
-  workflow_dispatch: # Allows you to click "Run Workflow" manually in GitHub Actions
+  workflow_dispatch:
 
 env:
   PLATFORM: "android"
@@ -19,9 +19,19 @@ jobs:
         with:
           lfs: true
 
-      # IMPORTANT: Insert your Unity Build step here. 
-      # The usymtool.sh script REQUIRES the Library/Bee folder to exist.
+      # --- 1. PASO DE COMPILACIÓN (LICENCIA PRO) ---
+      # Esto compilará tu juego de Android y generará la carpeta Library/Bee/
+      - name: Build Android Project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          buildsPath: ${{ github.workspace }}/Build
 
+      # --- 2. PASO DE SUBIDA DE SÍMBOLOS ---
       - name: Upload debug symbols
         env:
           UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
