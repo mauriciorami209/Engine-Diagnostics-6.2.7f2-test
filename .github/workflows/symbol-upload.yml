@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MyGame-APK
-          path: ${{ github.workspace }}/Build/**/*.apk    
+          path: ${{ github.workspace }}/**/*.apk    
 
       # --- 2. PASO DE SUBIDA DE SÍMBOLOS ---
       - name: Upload debug symbols
