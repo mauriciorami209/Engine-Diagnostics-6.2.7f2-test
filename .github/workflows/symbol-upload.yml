@@ -50,6 +50,15 @@ jobs:
           export USYMTOOL_PATH_OVERRIDE="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/usymtool"
           export LZMA_PATH="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/lzma"
           export IL2CPP_FILE_ROOT_OVERRIDE="."
-          
+
           chmod +x ./usymtool.sh
           ./usymtool.sh
+
+          # --- 3. PASO PARA DEVOLVER LA LICENCIA ---
+      # Va alineado con los otros "steps", justo debajo del final de usymtool.sh
+      - name: Return Unity License
+        uses: game-ci/unity-return-license@v4
+        if: always() # OBLIGATORIO: Fuerza a que se devuelva incluso si el build falla
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
