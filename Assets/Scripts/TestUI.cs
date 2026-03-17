@@ -20,7 +20,7 @@ public class TestUI : MonoBehaviour
 
     private async void Start()
     {
-        Debug.Log("Force a new build and new session: " + System.Guid.NewGuid());
+        Debug.Log("Force a new build and new session2" + System.Guid.NewGuid());
         
         // 1. Disable buttons to prevent clicking before initialization finishes
         SetButtonsInteractable(false);
@@ -138,3 +138,4 @@ public class TestUI : MonoBehaviour
         }
     }
 }
+
