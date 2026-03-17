@@ -41,24 +41,15 @@ jobs:
         run: |
           # Use sed to inject GitHub secrets into the script template
           sed -i '' "s|PLATFORM=\"macos\"|PLATFORM=\"${PLATFORM}\"|" ./usymtool.sh
-          sed -i '' "s|UNITY_PROJECT_ID=\"<your-unity-project-id>\"|${UNITY_PROJECT_ID}|" ./usymtool.sh
-          sed -i '' "s|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"<your-service-account-auth-header>\"|${UNITY_SA_AUTH}|" ./usymtool.sh
-          sed -i '' "s|UNITY_EDITOR_PATH=\"/Applications/Unity/Hub/Editor/6000.3.10f1\"|${UNITY_EDITOR_PATH}|" ./usymtool.sh
-          sed -i '' "s|UNITY_PROJECT_PATH=\"<your-unity-project-path>\"|${UNITY_PROJECT_PATH}|" ./usymtool.sh
+          sed -i '' "s|UNITY_PROJECT_ID=\"<your-unity-project-id>\"|UNITY_PROJECT_ID=\"${UNITY_PROJECT_ID}\"|" ./usymtool.sh
+          sed -i '' "s|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"<your-service-account-auth-header>\"|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"${UNITY_SA_AUTH}\"|" ./usymtool.sh
+          sed -i '' "s|UNITY_EDITOR_PATH=\"/Applications/Unity/Hub/Editor/6000.3.10f1\"|UNITY_EDITOR_PATH=\"${UNITY_EDITOR_PATH}\"|" ./usymtool.sh
+          sed -i '' "s|UNITY_PROJECT_PATH=\"<your-unity-project-path>\"|UNITY_PROJECT_PATH=\"${UNITY_PROJECT_PATH}\"|" ./usymtool.sh
           
           # Apply the Mandatory fixes we discovered for Unity 6
           export USYMTOOL_PATH_OVERRIDE="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/usymtool"
           export LZMA_PATH="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/lzma"
           export IL2CPP_FILE_ROOT_OVERRIDE="."
-
+          
           chmod +x ./usymtool.sh
           ./usymtool.sh
-
-          # --- 3. PASO PARA DEVOLVER LA LICENCIA ---
-      # Va alineado con los otros "steps", justo debajo del final de usymtool.sh
-      - name: Return Unity License
-        uses: game-ci/unity-return-license@v2
-        if: always() # OBLIGATORIO: Fuerza a que se devuelva incluso si el build falla
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
