@@ -90,7 +90,7 @@ case "${PLATFORM}" in
     ;;
   android)
     DEFAULT_USYMTOOL_PATH="${UNITY_EDITOR_PATH}/Unity.app/Contents/Helpers/usymtoolarm64"
-    DEFAULT_SYMBOL_PATH="${UNITY_PROJECT_PATH}/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/symbols"
+    DEFAULT_SYMBOL_PATH="${BACKUP_FOLDER}"
     DEFAULT_IL2CPP_OUTPUT_PATH="${UNITY_PROJECT_PATH}/Library/Bee/Android/Prj/IL2CPP/Gradle/../Il2CppBackup/il2cppOutput"
     DEFAULT_IL2CPP_FILE_ROOT="${UNITY_PROJECT_PATH}/Library/Bee/artifacts/Android/il2cppOutput/cpp"
     DEFAULT_LOG_PATH="${HOME}/Library/Logs/Unity/symbol_upload.log"
