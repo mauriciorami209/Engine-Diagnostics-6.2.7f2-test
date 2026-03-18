@@ -30,13 +30,14 @@ jobs:
         with:
           targetPlatform: Android
           buildsPath: ${{ github.workspace }}/Build
+
       # --- PASO PARA GUARDAR EL APK Y PODER DESCARGARLO ---
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MyGame-APK
           path: ${{ github.workspace }}/**/*.apk    
-
+          customParameters: -createSymbols # <--- ¡Add this flag to include symbols in the artifact
       # --- 2. PASO DE SUBIDA DE SÍMBOLOS ---
       - name: Upload debug symbols
         env:
