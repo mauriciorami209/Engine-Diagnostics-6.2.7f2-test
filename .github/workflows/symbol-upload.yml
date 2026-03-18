@@ -44,7 +44,7 @@ jobs:
           UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
           UNITY_SA_AUTH: ${{ secrets.UNITY_SA_AUTH_HEADER }}
           UNITY_PROJECT_PATH: ${{ github.workspace }}
-          BUILD_OUTPUT_PATH: ${{ github.workspace }}/Build
+          BUILD_OUTPUT_PATH: ${{ github.workspace }}/Build/Android
           BUILD_NAME: MyGame # <--- Update
           PLATFORM: android
           UNITY_EDITOR_PATH: /Applications/Unity/Hub/Editor/6000.2.7f2
