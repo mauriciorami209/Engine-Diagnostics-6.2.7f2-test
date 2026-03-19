@@ -44,37 +44,18 @@ jobs:
           UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
           UNITY_SA_AUTH: ${{ secrets.UNITY_SA_AUTH_HEADER }}
           UNITY_PROJECT_PATH: ${{ github.workspace }}
-          PLATFORM: android
-          UNITY_EDITOR_PATH: /Applications/Unity/Hub/Editor/6000.2.7f2
+          BUILD_OUTPUT_PATH: ${{ github.workspace }}/Build
         run: |
-          # 0. THE SMART FINDER (No more path guessing)
-          # This scans the entire workspace to find exactly where Unity hid the backup folder
-          REAL_BACKUP_PATH=$(find ${{ github.workspace }} -type d -name "*_BackUpThisFolder_ButDontShipItWithYourGame" | head -n 1)
-          echo "Found Backup folder at: $REAL_BACKUP_PATH"
-          
-          # Extract the exact directory and the exact Build Name Unity used
-          REAL_BUILD_DIR=$(dirname "$REAL_BACKUP_PATH")
-          REAL_BUILD_NAME=$(basename "$REAL_BACKUP_PATH" | sed 's/_BackUpThisFolder_ButDontShipItWithYourGame//')
-          
-          echo "Injected Build Directory: $REAL_BUILD_DIR"
-          echo "Injected Build Name: $REAL_BUILD_NAME"
-
-          # 1. Inject Secrets & Core Configuration
           sed -i '' "s|PLATFORM=\"macos\"|PLATFORM=\"${PLATFORM}\"|" ./usymtool.sh
           sed -i '' "s|UNITY_PROJECT_ID=\"<your-unity-project-id>\"|UNITY_PROJECT_ID=\"${UNITY_PROJECT_ID}\"|" ./usymtool.sh
           sed -i '' "s|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"<your-service-account-auth-header>\"|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"${UNITY_SA_AUTH}\"|" ./usymtool.sh
           sed -i '' "s|UNITY_EDITOR_PATH=\"/Applications/Unity/Hub/Editor/6000.3.10f1\"|UNITY_EDITOR_PATH=\"${UNITY_EDITOR_PATH}\"|" ./usymtool.sh
           sed -i '' "s|UNITY_PROJECT_PATH=\"<your-unity-project-path>\"|UNITY_PROJECT_PATH=\"${UNITY_PROJECT_PATH}\"|" ./usymtool.sh
+          sed -i '' "s|BUILD_OUTPUT_PATH=\"<your-build-output-path>\"|BUILD_OUTPUT_PATH=\"${BUILD_OUTPUT_PATH}\"|" ./usymtool.sh
+          sed -i '' "s|BUILD_NAME=\"<your-build-name>\"|BUILD_NAME=\"${BUILD_NAME}\"|" ./usymtool.sh
           
-          # 2. Inject the dynamically found paths!
-          sed -i '' "s|BUILD_OUTPUT_PATH=\"<your-build-output-path>\"|BUILD_OUTPUT_PATH=\"${REAL_BUILD_DIR}\"|" ./usymtool.sh
-          sed -i '' "s|BUILD_NAME=\"<your-build-name>\"|BUILD_NAME=\"${REAL_BUILD_NAME}\"|" ./usymtool.sh
-          
-          # 3. Apply Mandatory Overrides
-          export USYMTOOL_PATH_OVERRIDE="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/usymtool"
-          export LZMA_PATH="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/lzma"
+          # Fix documented for Unity 6: missing C# line numbers  
           export IL2CPP_FILE_ROOT_OVERRIDE="."
           
-          # 4. Grant execution permissions and run
           chmod +x ./usymtool.sh
           ./usymtool.sh
