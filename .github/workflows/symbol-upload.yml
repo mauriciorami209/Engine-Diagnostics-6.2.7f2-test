@@ -29,7 +29,7 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: StandaloneWindows64 # <--- Plataforma Windows
-          buildsPath: ${{ github.workspace }}\Build
+          buildsPath: Build
 
       # --- PASO PARA GUARDAR EL BUILD DE WINDOWS ---
       # En Windows no hay APK. Guardamos toda la carpeta compilada.
