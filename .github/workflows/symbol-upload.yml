@@ -1,4 +1,4 @@
-name: Build and Upload Symbols
+name: Build and Upload Symbols (Windows)
 
 on:
   push:
@@ -6,56 +6,62 @@ on:
   workflow_dispatch:
 
 env:
-  PLATFORM: "android"
-  UNITY_EDITOR_PATH: "/Applications/Unity/Hub/Editor/6000.2.7f2"
+  PLATFORM: "windows" # <--- Cambiado a Windows
+  # La ruta típica de instalación en la máquina virtual de Windows de GitHub
+  UNITY_EDITOR_PATH: "C:\\Program Files\\Unity\\Hub\\Editor\\6000.2.7f2"
   BUILD_NAME: "MyGame"
 
 jobs:
   upload-symbols:
-    runs-on: macos-latest
+    runs-on: windows-latest # <--- CRÍTICO: Usar servidor Windows
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      # --- 1. PASO DE COMPILACIÓN (LICENCIA PRO) ---
-      # Esto compilará tu juego de Android y generará la carpeta Library/Bee/
-      - name: Build Android Project
+      # --- 1. PASO DE COMPILACIÓN ---
+      - name: Build Windows Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
-          targetPlatform: Android
-          buildsPath: ${{ github.workspace }}/Build
+          targetPlatform: StandaloneWindows64 # <--- Plataforma Windows
+          buildsPath: ${{ github.workspace }}\Build
 
-      # --- PASO PARA GUARDAR EL APK Y PODER DESCARGARLO ---
-      - name: Upload APK Artifact
+      # --- PASO PARA GUARDAR EL BUILD DE WINDOWS ---
+      # En Windows no hay APK. Guardamos toda la carpeta compilada.
+      # (Nota: Quité customParameters de aquí porque es inválido en upload-artifact)
+      - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MyGame-APK
-          path: ${{ github.workspace }}/**/*.apk    
-          customParameters: -createSymbols # <--- ¡Add this flag to include symbols in the artifact
-      # --- 2. SYMBOL UPLOAD STEP ---
+          name: MyGame-Windows
+          path: ${{ github.workspace }}\Build\StandaloneWindows64
+
+      # --- 2. SYMBOL UPLOAD STEP (USANDO POWERSHELL) ---
       - name: Upload debug symbols
+        shell: pwsh
         env:
           UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
           UNITY_SA_AUTH: ${{ secrets.UNITY_SA_AUTH_HEADER }}
-          UNITY_PROJECT_PATH: ${{ github.workspace }}
-          BUILD_OUTPUT_PATH: ${{ github.workspace }}/Build
         run: |
-          sed -i '' "s|PLATFORM=\"macos\"|PLATFORM=\"${PLATFORM}\"|" ./usymtool.sh
-          sed -i '' "s|UNITY_PROJECT_ID=\"<your-unity-project-id>\"|UNITY_PROJECT_ID=\"${UNITY_PROJECT_ID}\"|" ./usymtool.sh
-          sed -i '' "s|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"<your-service-account-auth-header>\"|UNITY_SERVICE_ACCOUNT_AUTH_HEADER=\"${UNITY_SA_AUTH}\"|" ./usymtool.sh
-          sed -i '' "s|UNITY_EDITOR_PATH=\"/Applications/Unity/Hub/Editor/6000.3.10f1\"|UNITY_EDITOR_PATH=\"${UNITY_EDITOR_PATH}\"|" ./usymtool.sh
-          sed -i '' "s|UNITY_PROJECT_PATH=\"<your-unity-project-path>\"|UNITY_PROJECT_PATH=\"${UNITY_PROJECT_PATH}\"|" ./usymtool.sh
-          sed -i '' "s|BUILD_OUTPUT_PATH=\"<your-build-output-path>\"|BUILD_OUTPUT_PATH=\"${BUILD_OUTPUT_PATH}\"|" ./usymtool.sh
-          sed -i '' "s|BUILD_NAME=\"<your-build-name>\"|BUILD_NAME=\"${BUILD_NAME}\"|" ./usymtool.sh
+          $content = Get-Content ./usymtool.ps1 -Raw
           
-          # Fix documented for Unity 6: missing C# line numbers  
-          export IL2CPP_FILE_ROOT_OVERRIDE="."
+          # Inyección de configuración base
+          $content = $content.Replace('$PLATFORM = "android"', '$PLATFORM = "${{ env.PLATFORM }}"')
+          $content = $content.Replace('$UNITY_PROJECT_ID = "<your-unity-project-id>"', ('$UNITY_PROJECT_ID = "' + $env:UNITY_PROJECT_ID + '"'))
+          $content = $content.Replace('$UNITY_SERVICE_ACCOUNT_AUTH_HEADER = "<your-service-account-auth-header>"', ('$UNITY_SERVICE_ACCOUNT_AUTH_HEADER = "' + $env:UNITY_SA_AUTH + '"'))
+          $content = $content.Replace('$UNITY_EDITOR_PATH = "C:\Program Files\Unity\Hub\Editor\6000.3.10f1"', ('$UNITY_EDITOR_PATH = "${{ env.UNITY_EDITOR_PATH }}"'))
           
-          chmod +x ./usymtool.sh
-          ./usymtool.sh
+          # Inyección de rutas de Windows
+          $content = $content.Replace('$UNITY_PROJECT_PATH = "<your-unity-project-path>"', ('$UNITY_PROJECT_PATH = "' + $env:GITHUB_WORKSPACE + '"'))
+          $content = $content.Replace('$BUILD_OUTPUT_PATH = "<your-build-output-path>"', ('$BUILD_OUTPUT_PATH = "' + $env:GITHUB_WORKSPACE + '\Build\StandaloneWindows64"'))
+          $content = $content.Replace('$BUILD_NAME = "<your-build-name>"', '$BUILD_NAME = "${{ env.BUILD_NAME }}"')
+          
+          # *** EL OVERRIDE CRÍTICO PARA UNITY 6 (Mapeo de líneas C#) ***
+          $content = $content.Replace('$IL2CPP_FILE_ROOT_OVERRIDE = ""', '$IL2CPP_FILE_ROOT_OVERRIDE = "."')
+          
+          $content | Set-Content ./usymtool.ps1
+          .\usymtool.ps1
