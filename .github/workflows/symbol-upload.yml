@@ -31,7 +31,7 @@ jobs:
           targetPlatform: Android
           buildsPath: ${{ github.workspace }}/Build
           # Tells Unity to use the profile with the Debug Symbols enabled!
-          customParameters: -buildProfile "Assets/Settings/Build Profiles/Android_CI.asset"
+          # customParameters: -buildProfile "Assets/Settings/Build Profiles/Android_CI.asset"
 
       # --- PASO PARA GUARDAR EL APK Y PODER DESCARGARLO ---
       - name: Upload APK Artifact
