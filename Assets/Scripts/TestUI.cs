@@ -20,8 +20,7 @@ public class TestUI : MonoBehaviour
 
     private async void Start()
     {
-        Debug.Log("Force a new try to upload symbols" + System.Guid.NewGuid());
-        Debug.Log("Starting TestUI Initialization");
+        
         
         // 1. Disable buttons to prevent clicking before initialization finishes
         SetButtonsInteractable(false);
@@ -79,7 +78,7 @@ public class TestUI : MonoBehaviour
             // CRITICAL: Enable exception capture to ensure metadata is sent
             CrashReportHandler.enableCaptureExceptions = true;
 
-            Debug.Log("CrashReportHandler metadata set successfully");
+            Debug.Log("CrashReportHandler metadata set successfully and exception capture enabled");
         }
         catch (Exception e)
         {
