@@ -14,7 +14,7 @@ symbolication completely impossible.
 | # | Severity | Location | Description |
 |---|----------|----------|-------------|
 | 1 | CRITICAL | `symbol-upload.yml:42` | `-createSymbols` flag placed in wrong step — silently ignored |
-| 2 | CRITICAL | `usymtool.sh:58` | `USYMTOOL_PATH_OVERRIDE` hardcoded to wrong binary, never replaced by `sed` |
+| 2 | CRITICAL | `usymtool.sh:58` | `USYMTOOL_PATH_OVERRIDE` must point to the x86_64 Intel binary — default ARM64 path (`usymtoolarm64`) does not exist on Intel Mac runners |
 | 3 | CRITICAL | `usymtool.sh:61` + `symbol-upload.yml:60` | `IL2CPP_FILE_ROOT_OVERRIDE="."` points to repo root instead of actual IL2CPP output |
 | 4 | MEDIUM   | `Assets/Settings/Build Profiles/` | `Android_CI.asset` build profile referenced in workflow does not exist |
 | 5 | MINOR    | `usymtool.sh:157` | `LZMA_PATH` hardcoded to local developer machine path |
@@ -67,32 +67,43 @@ generated during the build, steps 2 and 3 are irrelevant.
 
 ---
 
-### Step 2 — Clear `USYMTOOL_PATH_OVERRIDE` so Android uses the correct binary (Bug 2)
+### Step 2 — Set `USYMTOOL_PATH_OVERRIDE` to the Intel (x86_64) binary using a dynamic path (Bug 2)
 
 **File:** `usymtool.sh`
 
-`USYMTOOL_PATH_OVERRIDE` is set to a hardcoded local developer path pointing to
-`Contents/Tools/macosx/usymtool`. Because it is not empty, it overrides the Android
-platform default (`Contents/Helpers/usymtoolarm64`). This override is never replaced
-by any `sed` command in the workflow.
+The script's platform defaults always point to `Contents/Helpers/usymtoolarm64` for both
+`macos` and `android` platforms. On an **Intel Mac**, this binary does not exist — only the
+x86_64 binary at `Contents/Tools/macosx/usymtool` is available.
 
-On GitHub Actions `macos-latest` runners (Apple Silicon since 2024), the ARM64 binary
-in `Helpers/` is required. The binary in `Tools/macosx/` is either the wrong architecture
-or a different tool variant.
+The previous version hardcoded the full absolute path including the editor version, which
+made it fragile. The correct fix uses `${UNITY_EDITOR_PATH}` (already replaced by `sed`
+in the workflow) to keep the path dynamic and version-independent.
 
-**Change:** Clear the override in `usymtool.sh` so the Android `case` block picks the
-correct default.
+> **Architecture note:** `DEFAULT_USYMTOOL_PATH` is hardcoded for ARM64. Intel Mac users
+> must use `USYMTOOL_PATH_OVERRIDE` pointing to the macOS toolset at
+> `Contents/Tools/macosx/usymtool`.
+
+**Change:** Set the override to a dynamic path using `${UNITY_EDITOR_PATH}`.
 
 ```bash
-# BEFORE
+# BEFORE (original — hardcoded full path, fragile)
 USYMTOOL_PATH_OVERRIDE="/Applications/Unity/Hub/Editor/6000.2.7f2/Unity.app/Contents/Tools/macosx/usymtool"
 
-# AFTER
+# WRONG FIX (clears override — falls back to usymtoolarm64, fails on Intel)
 USYMTOOL_PATH_OVERRIDE=""
+
+# CORRECT FIX (dynamic path, Intel-compatible binary)
+USYMTOOL_PATH_OVERRIDE="${UNITY_EDITOR_PATH}/Unity.app/Contents/Tools/macosx/usymtool"
 ```
 
-**Why this matters:** Invoking the wrong binary will either crash silently or produce
-corrupt symbol packages even if symbol files are present.
+**Why this works:** `UNITY_EDITOR_PATH` is declared on line 30 of the script, before
+`USYMTOOL_PATH_OVERRIDE` is evaluated on line 58. The `sed` command in the workflow
+replaces line 30 first, so by the time the script runs, `${UNITY_EDITOR_PATH}` expands
+to the correct versioned path (e.g. `/Applications/Unity/Hub/Editor/6000.2.7f2`).
+
+**Why this matters:** Invoking `usymtoolarm64` on an Intel Mac produces a
+`cannot execute binary file` error or silently fails path validation before any
+symbolication can occur.
 
 ---
 
