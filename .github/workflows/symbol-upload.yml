@@ -30,7 +30,6 @@ jobs:
         with:
           targetPlatform: Android
           buildsPath: ${{ github.workspace }}/Build
-          customParameters: -createSymbols
           androidVersionCode: ${{ github.run_number }}
           # Tells Unity to use the profile with the Debug Symbols enabled!
           # customParameters: -buildProfile "Assets/Settings/Build Profiles/Android_CI.asset"
@@ -57,6 +56,6 @@ jobs:
           sed -i '' "s|BUILD_OUTPUT_PATH=\"<your-build-output-path>\"|BUILD_OUTPUT_PATH=\"${BUILD_OUTPUT_PATH}\"|" ./usymtool.sh
           sed -i '' "s|BUILD_NAME=\"<your-build-name>\"|BUILD_NAME=\"${BUILD_NAME}\"|" ./usymtool.sh
           
-          export IL2CPP_FILE_ROOT_OVERRIDE="${{ github.workspace }}/Library/Bee/artifacts/Android/il2cppOutput/cpp"
+          export IL2CPP_FILE_ROOT_OVERRIDE="."
           chmod +x ./usymtool.sh
           ./usymtool.sh
