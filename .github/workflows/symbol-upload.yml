@@ -31,6 +31,7 @@ jobs:
           targetPlatform: Android
           buildsPath: ${{ github.workspace }}/Build
           customParameters: -createSymbols
+          androidVersionCode: ${{ github.run_number }}
           # Tells Unity to use the profile with the Debug Symbols enabled!
           # customParameters: -buildProfile "Assets/Settings/Build Profiles/Android_CI.asset"
 
@@ -57,7 +58,5 @@ jobs:
           sed -i '' "s|BUILD_NAME=\"<your-build-name>\"|BUILD_NAME=\"${BUILD_NAME}\"|" ./usymtool.sh
           
           export IL2CPP_FILE_ROOT_OVERRIDE="${{ github.workspace }}/Library/Bee/artifacts/Android/il2cppOutput/cpp"
-          # Force overwrite of existing symbol files on the server
-          export FILTER_OVERRIDE="-forceUpload"
           chmod +x ./usymtool.sh
           ./usymtool.sh
